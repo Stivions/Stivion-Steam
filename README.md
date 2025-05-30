@@ -19,7 +19,7 @@
 
 ## 🖼️ Demo Visual
 
-> Reemplaza el GIF con tu grabación. Si lo tienes listo, puedo integrarlo por ti.
+> Suscribete a mi canal
 
 <div align="center">
   <img src="icon1.gif" width="700" alt="demo-gif" />
