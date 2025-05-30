@@ -22,7 +22,7 @@
 > Reemplaza el GIF con tu grabación. Si lo tienes listo, puedo integrarlo por ti.
 
 <div align="center">
-  <img src="icon1.jpg" width="700" alt="demo-gif" />
+  <img src="icon1.gif" width="700" alt="demo-gif" />
   <p><i>Interfaz limpia, feedback visual y experiencia instantánea.</i></p>
 </div>
 
