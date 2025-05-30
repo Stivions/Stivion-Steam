@@ -22,7 +22,7 @@
 > Reemplaza el GIF con tu grabación. Si lo tienes listo, puedo integrarlo por ti.
 
 <div align="center">
-  <img src="https://i.imgur.com/0cVgU8Z.gif" width="700" alt="demo-gif" />
+  <img src="icon1jpg" width="700" alt="demo-gif" />
   <p><i>Interfaz limpia, feedback visual y experiencia instantánea.</i></p>
 </div>
 
@@ -56,9 +56,7 @@
 ```bash
 📦 Steam Account Giver
 ├── app.py                 # Interfaz gráfica principal
-├── subir.py              # Cargador automático a Supabase
-├── STEAM CUENTAS.txt     # Lista original de cuentas
+
+
 ├── icono.ico             # Ícono de la app
-├── dist/
-│   └── app.exe           # Ejecutable final
-└── README.md             # Este archivo
+ app.exe           # Ejecutable final
