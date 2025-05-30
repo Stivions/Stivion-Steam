@@ -13,8 +13,8 @@ from PyQt6.QtGui import QFont, QColor, QPalette
 from supabase import create_client, Client
 
 # Configura Supabase
-url = "https://osivvbcdkhhqbwvvgrnu.supabase.co"
-key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9zaXZ2YmNka2hocWJ3dnZncm51Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg1NDg1MzgsImV4cCI6MjA2NDEyNDUzOH0.ENbMfGk9rTHRxGeUUrj6Y-WDRrgmveaCcvg2Myit5gM"
+url = ""
+key = ""
 supabase: Client = create_client(url, key)
 
 class CuentaGenerator(QWidget):
