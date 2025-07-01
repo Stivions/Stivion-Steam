@@ -2,6 +2,8 @@ import sys
 import random
 import threading
 import time
+import os
+from dotenv import load_dotenv
 
 from PyQt6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
@@ -12,23 +14,26 @@ from PyQt6.QtGui import QFont, QColor, QPalette
 
 from supabase import create_client, Client
 
-# Configura Supabase
-url = ""
-key = ""
+# Cargar variables del .env
+load_dotenv()
+url = os.getenv("SUPABASE_URL")
+key = os.getenv("SUPABASE_KEY")
+
+if not url or not key:
+    raise Exception("❌ No se encontraron SUPABASE_URL o SUPABASE_KEY en el .env")
+
 supabase: Client = create_client(url, key)
 
 class CuentaGenerator(QWidget):
     def __init__(self):
         super().__init__()
-        # Inicializamos variables numéricas correctamente
-        self.cuentas_usadas = 0
-        self.total_cuentas = 0
-        self.cuentas_libres = 0
-        self.usuarios_conectados = 0  # Puedes adaptar a tu lógica real luego
-
         self.setWindowTitle("Generador de Cuentas")
         self.setFixedSize(800, 600)
-        self.setAutoFillBackground(True)
+
+        self.cuentas_usadas = 0
+        self.total_cuentas = 0
+        self.usuarios_conectados = 0
+
         pal = self.palette()
         pal.setColor(QPalette.ColorRole.Window, QColor(20, 20, 20))
         self.setPalette(pal)
@@ -42,13 +47,11 @@ class CuentaGenerator(QWidget):
         main_layout.setSpacing(30)
 
         title = QLabel("Generador de Cuentas")
-        title_font = QFont("Segoe UI", 24, QFont.Weight.Bold)
-        title.setFont(title_font)
+        title.setFont(QFont("Segoe UI", 24, QFont.Weight.Bold))
         title.setStyleSheet("color: white;")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         main_layout.addWidget(title)
 
-        # Botón grande central
         self.boton = QPushButton("Obtener cuenta")
         self.boton.setFixedSize(250, 60)
         self.boton.setStyleSheet("""
@@ -68,7 +71,7 @@ class CuentaGenerator(QWidget):
         self.boton.clicked.connect(self.obtener_cuenta)
         main_layout.addWidget(self.boton, alignment=Qt.AlignmentFlag.AlignHCenter)
 
-        # Área cuenta
+        # Área de cuenta
         self.usuario_label = QLabel("Usuario:")
         self.usuario_label.setStyleSheet("color: #B0B0B0; font-size: 16px;")
         self.usuario_val = QLabel("")
@@ -101,13 +104,13 @@ class CuentaGenerator(QWidget):
 
         main_layout.addStretch()
 
-        # Status info en la parte inferior
+        # Status inferior
         status_layout = QHBoxLayout()
         self.label_usuarios = QLabel("Usuarios conectados: 0")
         self.label_usuarios.setStyleSheet("color: #909090; font-size: 12px;")
         self.label_cuentas_usadas = QLabel("Cuentas usadas: 0")
         self.label_cuentas_usadas.setStyleSheet("color: #909090; font-size: 12px;")
-        self.label_cuentas_libres = QLabel("Cuentas disponibles: 0")
+        self.label_cuentas_libres = QLabel("Total cuentas: 0")
         self.label_cuentas_libres.setStyleSheet("color: #909090; font-size: 12px;")
 
         status_layout.addWidget(self.label_usuarios)
@@ -118,15 +121,13 @@ class CuentaGenerator(QWidget):
         self.setLayout(main_layout)
 
     def obtener_cuenta(self):
-        cuentas = supabase.table('cuentas').select('id, usuario, contrasena').eq('usada', False).execute()
+        cuentas = supabase.table('cuentas').select('id, usuario, contrasena').execute()
         if cuentas.data and len(cuentas.data) > 0:
             cuenta_random = random.choice(cuentas.data)
             self.usuario_val.setText(cuenta_random['usuario'])
             self.contrasena_val.setText(cuenta_random['contrasena'])
-            # Marcar como usada
-            supabase.table('cuentas').update({'usada': True}).eq('id', cuenta_random['id']).execute()
             self.cuentas_usadas += 1
-            self.indicador.setText("✅ Cuenta disponible")
+            self.indicador.setText("✅ Cuenta mostrada")
             self.indicador.setStyleSheet("color: #64ff64; font-size: 14px;")
             self.animar_fade_scale(self.usuario_val)
             self.animar_fade_scale(self.contrasena_val)
@@ -134,21 +135,18 @@ class CuentaGenerator(QWidget):
         else:
             self.usuario_val.setText("")
             self.contrasena_val.setText("")
-            self.indicador.setText("❌ Ya usada")
+            self.indicador.setText("❌ No hay cuentas disponibles")
             self.indicador.setStyleSheet("color: #ff6464; font-size: 14px;")
             self.animar_fade_scale(self.indicador)
 
     def animar_fade_scale(self, widget):
-        duration = 600  # ms
-
-        # Fade anim
+        duration = 600
         fade_anim = QPropertyAnimation(widget, b"windowOpacity")
         fade_anim.setStartValue(0.0)
         fade_anim.setEndValue(1.0)
         fade_anim.setDuration(duration)
         fade_anim.setEasingCurve(QEasingCurve.Type.InOutQuad)
 
-        # Scale anim (mediante cambiar geometry)
         rect = widget.geometry()
         center = rect.center()
         start_rect = QRect(center.x(), center.y(), 0, 0)
@@ -162,32 +160,18 @@ class CuentaGenerator(QWidget):
         group.addAnimation(fade_anim)
         group.addAnimation(scale_anim)
         group.start()
-
-        # Referencia para evitar garbage collection
-        widget.anim = group
+        widget.anim = group  # evita garbage collection
 
     def actualizar_datos(self):
         total = supabase.table('cuentas').select('id').execute()
-        self.total_cuentas = total.count if (total and total.count is not None) else 0
-
-        usadas = supabase.table('cuentas').select('id').eq('usada', True).execute()
-        self.cuentas_usadas = usadas.count if (usadas and usadas.count is not None) else 0
-
-        libres = supabase.table('cuentas').select('id').eq('usada', False).execute()
-        self.cuentas_libres = libres.count if (libres and libres.count is not None) else 0
-
-        # Para usuarios conectados puedes implementar la lógica según tu base o dejar simulado
-        self.usuarios_conectados = 0
-
-        # Actualizar labels en GUI
+        self.total_cuentas = len(total.data) if total and total.data else 0
+        self.label_cuentas_libres.setText(f"Total cuentas: {self.total_cuentas}")
+        self.label_cuentas_usadas.setText(f"Cuentas mostradas: {self.cuentas_usadas}")
         self.label_usuarios.setText(f"Usuarios conectados: {self.usuarios_conectados}")
-        self.label_cuentas_usadas.setText(f"Cuentas usadas: {self.cuentas_usadas}")
-        self.label_cuentas_libres.setText(f"Cuentas disponibles: {self.cuentas_libres}")
 
     def start_updater(self):
         def loop():
             while True:
-                # Actualizar datos en hilo GUI
                 QTimer.singleShot(0, self.actualizar_datos)
                 time.sleep(4)
         threading.Thread(target=loop, daemon=True).start()
